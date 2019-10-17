@@ -4,12 +4,12 @@ def create_header_and_wordset(string):
     # separar num array de palavras
     dict_virgulas_pontos = {'virgulas':[], 'pontos':[]}
 
-    enfase_nas_virgulas = string.replace(',', ' ,')
-    e_tambem_nos_pontos = enfase_nas_virgulas.replace('.',' .')
-    splitado = e_tambem_nos_pontos.split(' ')
-    for index, each in enumerate(splitado):
-        if each == ',':
-            dict_virgulas_pontos['virgulas'].append(index)
+    enfase_nas_virgulas = string.replace(',', ' ,')# Casos especiais, fazendo a separacao da virgula
+    e_tambem_nos_pontos = enfase_nas_virgulas.replace('.',' .')#Mesma coisa de cima só que pontos
+    splitado = e_tambem_nos_pontos.split(' ')#separa as palavras baseado espaços vazios
+    for index, each in enumerate(splitado):#retorno index e seu valor, enumerarando o array 
+        if each == ',':                     #se o elemento for virgula
+            dict_virgulas_pontos['virgulas'].append(index)#insere a referencia de virgula no dict baseado no index da frase split 
             
         elif each == '.':
             dict_virgulas_pontos['pontos'].append(index+1)
@@ -30,6 +30,8 @@ def create_header_and_wordset(string):
     # esse método já retorna o cabeçalho,
     # a lista de palavras únicas(é descartado todas repetidas até sobrar uma só) 
     # e a posição das virgulas e dos pontos.
+    print(set_palavras)
+
     return header_bytes, set_palavras, dict_virgulas_pontos
 
 
@@ -83,8 +85,7 @@ def compress_string(stringdict, stringmaltratada, arrvirgulas):
     # estou criando a lista 'translated' pra cada elemento que exista no dict palavra-> bytes.
     # se a palavra não existe no dicionário de bytes (elemento menor que 4 letras),
     # retorno a própria palavra mesmo. Se existe bytes atrelados, retorno os bytes daquela palavra.
-    translated = [stringdict.get(i, str.encode(i))
-                  for i in stringoriginalcortada]
+    translated = [stringdict.get(i, str.encode(i)) for i in stringoriginalcortada]
     # agora, transformando essa lista no formato pedido.
 
     return translated
@@ -93,7 +94,7 @@ def compress_string(stringdict, stringmaltratada, arrvirgulas):
 
 # condicional de inicio do programa:
 # se o programa for executado com -c, é pra Comprimir.
-
+# o sys,argv[0] eh reservado para o nome do programa, o segundo parametro em comprimir ou descomprimir, o terceiro eh o nome do arquivo a ser usado
 if sys.argv[1] == '-c':
 
     arquivo = open(sys.argv[2])
@@ -115,7 +116,7 @@ if sys.argv[1] == '-c':
         i += 1
         if i != length:
             final += str.encode(' ')
-    final = final.replace(b' .', b'.')
+    final = final.replace(b' .', b'.')#nao sei mas precisa disso, veremos para ficar certinho
     final = final.replace(b' .', b'.')
     final = final.replace(b' , ', b',')
 
@@ -135,11 +136,11 @@ if sys.argv[1] == '-d':
     arquivo = open(sys.argv[2], 'rb')
     headaer = int.from_bytes(arquivo.read(2), byteorder='big')
     d = arquivo.read()
-    wordmap = []
+    wordmap = []#array com rrn
     reference = 0
     while headaer > 0:
-        reference = d.find(b',')
-        wordmap.append(d[:reference])
+        reference = d.find(b',')#define referencia como a virgula do header 
+        wordmap.append(d[:reference])#corta o arq ate posicao tal
         d = d[reference+1:]
         headaer -= 1
     frase_lista_bytes = []
@@ -158,6 +159,7 @@ if sys.argv[1] == '-d':
     descomprimido.close()
     arquivo.close()
     
+    print('Resultado da descompressao: ')
     print(d.decode('utf-8'))
     
 
