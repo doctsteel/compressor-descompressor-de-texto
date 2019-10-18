@@ -1,6 +1,24 @@
 import sys
 
 def create_header_and_wordset(string):
+    """Função precisa da frase original.
+    string é obviamente do tipo str
+    
+    O retorno dessa função vem em três:
+    header_bytes -> o header do arquivo final,
+    que indica quantas palavras unicas existem no texto,
+    no formato de dois bytes em ordem convencional.
+    set_palavras -> lista de palavras únicas, sem ordem alguma. Usei da tipagem de set() em python.
+    dict_virgulas_pontos -> dicionário com os index de cada virgula e ponto
+    da frase inserida no arquivo a ser comprimido.
+
+    Exemplo:
+    string = "Joao comeu, banana."
+    retorno:
+    header_bytes = b'\x00\x03'
+    set_palavras = {"Joao", "comeu", "banana"}
+    dict_virgulas_pontos = {'virgulas': [2], 'pontos':[5]}
+    """
     # separar num array de palavras
     dict_virgulas_pontos = {'virgulas':[], 'pontos':[]}
 
@@ -34,6 +52,18 @@ def create_header_and_wordset(string):
 
 
 def list_words(set_palavras):
+    """
+    Recebe um array de palavras no tipo set()
+
+    retorna no formato de bytes, todas as palavras do set
+    separas por virgula.
+
+    Exemplo: 
+    set_palavras = {"Joao", "comeu", "banana"}
+    retorno = b'Joao,comeu,banana'
+    
+    """
+
     parte_2 = ""
     for palavra in set_palavras:
         parte_2 = parte_2 + palavra+','
@@ -46,6 +76,18 @@ def list_words(set_palavras):
 
 
 def create_dict(set_palavras):
+    """
+    Recebe set_palavras em strings
+    Retorna dicionário com o endereçamento de acordo com a posição.
+
+    Exemplo:
+    set_palavras = {"Joao", "comeu", "banana"}
+    retorno:
+    parte_3_dict = {"Joao": b'\xff\x00\x00',
+     "comeu": b'\xff\x00\x01',
+     "banana": b'\xff\x00\x02'}
+    """
+
     parte_3_dict = {}
     contador_first_byte = 0
     contador_second_byte = 0
@@ -63,7 +105,26 @@ def create_dict(set_palavras):
 
 
 def compress_string(stringdict, stringmaltratada, arrvirgulas):
+    """
+    Recebe um dicionário de strings para bytes,
+    uma string original a ser traduzida,
+    e um dicionário com as posições de virgulas e pontos na frase.
 
+    Exemplo:
+
+    stringdict = {"Joao": b'\xff\x00\x00',
+     "comeu": b'\xff\x00\x01',
+     "banana": b'\xff\x00\x02'}
+
+    stringmaltratada = "Joao comeu, banana."
+
+    arrvirgulas = {'virgulas': [2], 'pontos':[5]}
+    retorno:
+    
+    retorno = b'\xff\x00\x00 \xff\x00\x01, \xff\x00\x02.'
+
+    
+    """
     # método bem feio, mas é o que tive cabeça pra escrever até as 3 da manhã, honestamente.
     # esse método recoloca e transforma em bytes as virgulas e os pontos que constam na frase.
 
