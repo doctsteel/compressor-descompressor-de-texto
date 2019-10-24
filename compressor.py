@@ -1,56 +1,48 @@
 import sys
+from collections import OrderedDict
+
 
 def create_header_and_wordset(string):
     """Função precisa da frase original.
     string é obviamente do tipo str
-    
-    O retorno dessa função vem em três:
+
+    O retorno dessa função vem:
     header_bytes -> o header do arquivo final,
     que indica quantas palavras unicas existem no texto,
     no formato de dois bytes em ordem convencional.
-    set_palavras -> lista de palavras únicas, sem ordem alguma. Usei da tipagem de set() em python.
-    dict_virgulas_pontos -> dicionário com os index de cada virgula e ponto
-    da frase inserida no arquivo a ser comprimido.
+    set_palavras -> conjunto de palavras únicas, em ordem.
 
     Exemplo:
     string = "Joao comeu, banana."
     retorno:
     header_bytes = b'\x00\x03'
-    set_palavras = {"Joao", "comeu", "banana"}
-    dict_virgulas_pontos = {'virgulas': [2], 'pontos':[5]}
+    set_palavras = ["Joao", "comeu", "banana"]
+
     """
     # separar num array de palavras
-    dict_virgulas_pontos = {'virgulas':[], 'pontos':[]}
-
-    enfase_nas_virgulas = string.replace(',', ' ,')# Casos especiais, fazendo a separacao da virgula
-    e_tambem_nos_pontos = enfase_nas_virgulas.replace('.',' .')#Mesma coisa de cima só que pontos
-    splitado = e_tambem_nos_pontos.split(' ')#separa as palavras baseado espaços vazios
-    for index, each in enumerate(splitado):#retorno index e seu valor, enumerarando o array 
-        if each == ',':                     #se o elemento for virgula
-            dict_virgulas_pontos['virgulas'].append(index)#insere a referencia de virgula no dict baseado no index da frase split 
-            
-        elif each == '.':
-            dict_virgulas_pontos['pontos'].append(index+1)
-    
-    string_sem_virgula = string.replace(',', ' ')
-    string_sem_pontuacao = string_sem_virgula.replace('.',' ')
-    array_palavras = string_sem_pontuacao.split(' ')
-    
+    char_list = list(string)
+    word_hold = ""
+    word_list = []
+    len_frase = len(string)
+    for index, char in enumerate(char_list):
+        if char.isalpha():  # verifica se o char eh alfanumerico
+            word_hold += char
+            if not len_frase - 1 == index:
+                if not char_list[index+1].isalpha():
+                    if len(word_hold) > 3:
+                        word_list.append(word_hold)
+                    word_hold = ""
+            else:
+                word_list.append(word_hold)
+                word_hold = ""
     # criar set de palavras unicas
-    set_palavras = []
-    for palavra in array_palavras:
-        if len(palavra) > 3:
-            set_palavras.append(palavra)
-    set_palavras = set(set_palavras)
+    set_palavras = list(OrderedDict.fromkeys(word_list))
     len_cabecalho = len(set_palavras)
     header_bytes = (len_cabecalho).to_bytes(2, byteorder='big')
 
     # esse método já retorna o cabeçalho,
-    # a lista de palavras únicas(é descartado todas repetidas até sobrar uma só) 
-    # e a posição das virgulas e dos pontos.
-    print(set_palavras)
-
-    return header_bytes, set_palavras, dict_virgulas_pontos
+    # e a lista de palavras sem duplicadas.
+    return header_bytes, set_palavras
 
 
 def list_words(set_palavras):
@@ -60,20 +52,20 @@ def list_words(set_palavras):
     retorna no formato de bytes, todas as palavras do set
     separas por virgula.
 
-    Exemplo: 
+    Exemplo:
     set_palavras = {"Joao", "comeu", "banana"}
     retorno = b'Joao,comeu,banana'
-    
+
     """
 
     parte_2 = ""
     for palavra in set_palavras:
         parte_2 = parte_2 + palavra+','
-    
+
     # esse método retorna a parte do meio do método de compressão
     # que o professor mandou fazer.
     # ou seja: retorna, em bytes, as palavras na ordem de index de acordo com a montagem no próximo método
-    
+
     return str.encode(parte_2)
 
 
@@ -100,56 +92,39 @@ def create_dict(set_palavras):
         if contador_first_byte == 256:
             contador_first_byte = 0
             contador_second_byte += 1
-    
+
     # cria o padrão dos tres bytes 255 0 0 que o professor pediu na terceira parte do retorno.
-    
+
     return parte_3_dict
 
 
-def compress_string(stringdict, stringmaltratada, arrvirgulas):
+def compress_string(stringdict, stringmaltratada):
+    """ É chamado a partir do -c na linha de comando e logo em seguida o nome do arquivo
+        Sintaxe:
+        python compressor.py -c texto.txt 
+
     """
-    Recebe um dicionário de strings para bytes,
-    uma string original a ser traduzida,
-    e um dicionário com as posições de virgulas e pontos na frase.
 
-    Exemplo:
 
-    stringdict = {"Joao": b'\xff\x00\x00',
-     "comeu": b'\xff\x00\x01',
-     "banana": b'\xff\x00\x02'}
+    aux_word = ""
+    final = b''
+    len_frase = len(stringmaltratada)
 
-    stringmaltratada = "Joao comeu, banana."
-
-    arrvirgulas = {'virgulas': [2], 'pontos':[5]}
-    retorno:
-    
-    retorno = b'\xff\x00\x00 \xff\x00\x01, \xff\x00\x02.'
-
-    
-    """
-    # método bem feio, mas é o que tive cabeça pra escrever até as 3 da manhã, honestamente.
-    # esse método recoloca e transforma em bytes as virgulas e os pontos que constam na frase.
-
-    string_meio_limpo = stringmaltratada.replace(',',' ')
-    string_full_limpo = string_meio_limpo.replace('.',' ')
-
-    stringoriginalcortada = string_full_limpo.split(' ')
-    conta_espacos = 0
-    for each in arrvirgulas['virgulas']:
-        stringoriginalcortada.insert(each + conta_espacos,',')
-        conta_espacos += 1
-    for each in arrvirgulas['pontos']:
-        stringoriginalcortada.insert(each + conta_espacos, '.')
-        conta_espacos += 1
-    # A MELHOR LINHA DO CÓDIGO
-    # Funciona assim: é uma interpretação de lista.
-    # estou criando a lista 'translated' pra cada elemento que exista no dict palavra-> bytes.
-    # se a palavra não existe no dicionário de bytes (elemento menor que 4 letras),
-    # retorno a própria palavra mesmo. Se existe bytes atrelados, retorno os bytes daquela palavra.
-    translated = [stringdict.get(i, str.encode(i)) for i in stringoriginalcortada]
+    for index, char in enumerate(stringmaltratada):
+        if char.isalpha():
+            aux_word+=char
+            if not len_frase - 1 == index: 
+                if not stringmaltratada[index+1].isalpha():
+                    final += stringdict.get(aux_word, str.encode(aux_word))
+                    aux_word = ""
+            else:
+                final+= stringdict.get(aux_word, str.encode(aux_word))
+                aux_word=""
+        if not char.isalpha():
+            final+= str.encode(char)
     # agora, transformando essa lista no formato pedido.
 
-    return translated
+    return final
 
 
 
@@ -164,22 +139,13 @@ if sys.argv[1] == '-c':
 
 
 
-    header, word_set, commas = create_header_and_wordset(frase)
+    header, word_set = create_header_and_wordset(frase)
 
     part_2 = list_words(word_set)
     word_dict = create_dict(word_set)
-    compressed_string_list = compress_string(word_dict, frase, commas)
-    final = header + part_2
-    length = len(compressed_string_list)
-    i = 0
-    for element in compressed_string_list:
-        final += element 
-        i += 1
-        if i != length:
-            final += str.encode(' ')
-    final = final.replace(b' .', b'.')#nao sei mas precisa disso, veremos para ficar certinho
-    final = final.replace(b' .', b'.')
-    final = final.replace(b' , ', b',')
+    compressed_string_list = compress_string(word_dict, frase)
+    final = header + part_2 + compressed_string_list
+
 
     file_comprimido = open("{}.cmp".format(sys.argv[2]), 'wb')
     file_comprimido.write(final)
@@ -222,17 +188,15 @@ if sys.argv[1] == '-d':
     descomprimido.write(d.decode('utf-8'))
     descomprimido.close()
     arquivo.close()
-    
-    print('Resultado da descompressao: ')
     print(d.decode('utf-8'))
-    
+
 
 
 
 # Em ambos os métodos ele tenta ler de um arquivo, e na hora de salvar os resultados ele tenta criar antes caso não exista.
 # Não importei nenhuma biblioteca que fosse interferir com o próprio algoritmo, só a sys que era necessário pra executar como o professor quis.
 
-#é isso galera amo voces boa noite pois já são 5 da manha e eu voltei cedo da aula pra ficar fazendo isso desde as 9
+# é isso galera amo voces boa noite pois já são 5 da manha e eu voltei cedo da aula pra ficar fazendo isso desde as 9
 
 
 # Caveira do mal extremamente importante para o trabalho:
