@@ -99,7 +99,7 @@ if sys.argv[1] == '-c':
 
     arquivo = open(sys.argv[2])
     frase = arquivo.read()
-    print("texto a ser comprimido: \n" + frase)
+#    print("texto a ser comprimido: \n" + frase)
 
 
 
@@ -154,7 +154,10 @@ if sys.argv[1] == '-d':
     while index_num < len(wordmap):
         d = d.replace(b'\xff'+(index_num).to_bytes(2,'big'), wordmap[index_num])
         index_num += 1
-    descomprimido = open("{}".format(sys.argv[2]), 'w')
+    
+    nome_de_arquivo= sys.argv[2]
+    nome_de_arquivo = nome_de_arquivo[:-4]
+    descomprimido = open("{}".format(nome_de_arquivo), 'w')
     descomprimido.write(d.decode('utf-8'))
     descomprimido.close()
     arquivo.close()
