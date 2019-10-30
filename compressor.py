@@ -1,6 +1,7 @@
 import sys
 from collections import OrderedDict
 
+
 def create_header_and_wordset(string):
     """Função precisa da frase original.
     string é obviamente do tipo str
@@ -22,12 +23,17 @@ def create_header_and_wordset(string):
     char_list = list(string)
     word_hold = ""
     word_list = []
+    len_frase = len(string)
     for index, char in enumerate(char_list):
-        if char.isalpha():
-            word_hold+= char
-            if not char_list[index+1].isalpha():
-                if len(word_hold) > 3:
-                    word_list.append(word_hold)
+        if char.isalpha():  # verifica se o char eh alfanumerico
+            word_hold += char
+            if not len_frase - 1 == index:
+                if not char_list[index+1].isalpha():
+                    if len(word_hold) > 3:
+                        word_list.append(word_hold)
+                    word_hold = ""
+            else:
+                word_list.append(word_hold)
                 word_hold = ""
     # criar set de palavras unicas
     set_palavras = list(OrderedDict.fromkeys(word_list))
@@ -93,52 +99,43 @@ def create_dict(set_palavras):
 
 
 def compress_string(stringdict, stringmaltratada):
-	"""
-	Recebe um dicionário de strings para bytes,
-	uma string original a ser traduzida,
-	e um dicionário com as posições de virgulas e pontos na frase.
+    """ É chamado a partir do -c na linha de comando e logo em seguida o nome do arquivo
+        Sintaxe:
+        python compressor.py -c texto.txt 
 
-	Exemplo:
-
-	stringdict = {"Joao": b'\xff\x00\x00',
-	"comeu": b'\xff\x00\x01',
-	"banana": b'\xff\x00\x02'}
-
-	stringmaltratada = "Joao comeu, banana."
-
-	arrvirgulas = {'virgulas': [2], 'pontos':[5]}
-	retorno:
-
-	retorno = b'\xff\x00\x00 \xff\x00\x01, \xff\x00\x02.'
+    """
 
 
-	"""
-# método bem feio, mas é o que tive cabeça pra escrever até as 3 da manhã, honestamente.
-# esse método recoloca e transforma em bytes as virgulas e os pontos que constam na frase.
-	aux_word = ""
-	final = b''
-	for index, char in enumerate(stringmaltratada):
-		if char.isalpha():
-			aux_word+=char
-			if not stringmaltratada[index+1].isalpha():
-				final += stringdict.get(aux_word, str.encode(aux_word))
-				aux_word = ""
-		if not char.isalpha():
-			final+= str.encode(char)
+    aux_word = ""
+    final = b''
+    len_frase = len(stringmaltratada)
+
+    for index, char in enumerate(stringmaltratada):
+        if char.isalpha():
+            aux_word+=char
+            if not len_frase - 1 == index: 
+                if not stringmaltratada[index+1].isalpha():
+                    final += stringdict.get(aux_word, str.encode(aux_word))
+                    aux_word = ""
+            else:
+                final+= stringdict.get(aux_word, str.encode(aux_word))
+                aux_word=""
+        if not char.isalpha():
+            final+= str.encode(char)
     # agora, transformando essa lista no formato pedido.
 
-	return final
+    return final
 
 
 
 # condicional de inicio do programa:
 # se o programa for executado com -c, é pra Comprimir.
-
+# o sys,argv[0] eh reservado para o nome do programa, o segundo parametro em comprimir ou descomprimir, o terceiro eh o nome do arquivo a ser usado
 if sys.argv[1] == '-c':
 
     arquivo = open(sys.argv[2])
     frase = arquivo.read()
-    print("texto a ser comprimido: \n" + frase)
+#    print("texto a ser comprimido: \n" + frase)
 
 
 
@@ -166,11 +163,11 @@ if sys.argv[1] == '-d':
     arquivo = open(sys.argv[2], 'rb')
     headaer = int.from_bytes(arquivo.read(2), byteorder='big')
     d = arquivo.read()
-    wordmap = []
+    wordmap = []#array com rrn
     reference = 0
     while headaer > 0:
-        reference = d.find(b',')
-        wordmap.append(d[:reference])
+        reference = d.find(b',')#define referencia como a virgula do header 
+        wordmap.append(d[:reference])#corta o arq ate posicao tal
         d = d[reference+1:]
         headaer -= 1
     frase_lista_bytes = []
@@ -184,11 +181,13 @@ if sys.argv[1] == '-d':
     while index_num < len(wordmap):
         d = d.replace(b'\xff'+(index_num).to_bytes(2,'big'), wordmap[index_num])
         index_num += 1
-    descomprimido = open("{}".format(sys.argv[2]), 'w')
+    
+    nome_de_arquivo= sys.argv[2]
+    nome_de_arquivo = nome_de_arquivo[:-4]
+    descomprimido = open("{}".format(nome_de_arquivo), 'w')
     descomprimido.write(d.decode('utf-8'))
     descomprimido.close()
     arquivo.close()
-
     print(d.decode('utf-8'))
 
 
@@ -197,7 +196,7 @@ if sys.argv[1] == '-d':
 # Em ambos os métodos ele tenta ler de um arquivo, e na hora de salvar os resultados ele tenta criar antes caso não exista.
 # Não importei nenhuma biblioteca que fosse interferir com o próprio algoritmo, só a sys que era necessário pra executar como o professor quis.
 
-#é isso galera amo voces boa noite pois já são 5 da manha e eu voltei cedo da aula pra ficar fazendo isso desde as 9
+# é isso galera amo voces boa noite pois já são 5 da manha e eu voltei cedo da aula pra ficar fazendo isso desde as 9
 
 
 # Caveira do mal extremamente importante para o trabalho:
