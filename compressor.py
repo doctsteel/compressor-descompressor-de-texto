@@ -130,7 +130,7 @@ def compress_string(stringdict, stringmaltratada):
 
 # condicional de inicio do programa:
 # se o programa for executado com -c, é pra Comprimir.
-# o sys,argv[0] eh reservado para o nome do programa, o segundo parametro em comprimir ou descomprimir, o terceiro eh o nome do arquivo a ser usado
+
 if sys.argv[1] == '-c':
 
     arquivo = open(sys.argv[2])
@@ -194,10 +194,8 @@ if sys.argv[1] == '-d':
 
 
 # Em ambos os métodos ele tenta ler de um arquivo, e na hora de salvar os resultados ele tenta criar antes caso não exista.
-# Não importei nenhuma biblioteca que fosse interferir com o próprio algoritmo, só a sys que era necessário pra executar como o professor quis.
-
-# é isso galera amo voces boa noite pois já são 5 da manha e eu voltei cedo da aula pra ficar fazendo isso desde as 9
-
+# Não importei nenhuma biblioteca que fosse interferir com o próprio algoritmo, só a sys que era necessário pra executar e 
+# a collections, que fornece o tipo de dado OrderedDict, que auxilia com a criação de um conjunto ordenado.
 
 # Caveira do mal extremamente importante para o trabalho:
 #                       :::!~!!!!!:.
@@ -220,3 +218,4 @@ if sys.argv[1] == '-d':
 # Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!
 # $R@i.~~ !     :   ~$$$$$B$$en:``
 # ?MXT@Wx.~    :     ~"##*$$$$M~
+
