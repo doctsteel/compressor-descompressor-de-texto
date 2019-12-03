@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from collections import OrderedDict
 
@@ -25,10 +26,10 @@ def create_header_and_wordset(string):
     word_list = []
     len_frase = len(string)
     for index, char in enumerate(char_list):
-        if char.isalpha():  # verifica se o char eh alfanumerico
+        if char.isalnum():  # verifica se o char eh alfanumerico
             word_hold += char
             if not len_frase - 1 == index:
-                if not char_list[index+1].isalpha():
+                if not char_list[index+1].isalnum():
                     if len(word_hold) > 3:
                         word_list.append(word_hold)
                     word_hold = ""
@@ -36,7 +37,8 @@ def create_header_and_wordset(string):
                 word_list.append(word_hold)
                 word_hold = ""
     # criar set de palavras unicas
-    set_palavras = list(OrderedDict.fromkeys(word_list))
+    somelist = [x for x in word_list if len(x) > 3]
+    set_palavras = list(OrderedDict.fromkeys(somelist))
     len_cabecalho = len(set_palavras)
     header_bytes = (len_cabecalho).to_bytes(2, byteorder='big')
 
@@ -59,6 +61,8 @@ def list_words(set_palavras):
     """
 
     parte_2 = ""
+    if not set_palavras:
+        parte_2 = ','
     for palavra in set_palavras:
         parte_2 = parte_2 + palavra+','
 
@@ -111,19 +115,19 @@ def compress_string(stringdict, stringmaltratada):
     len_frase = len(stringmaltratada)
 
     for index, char in enumerate(stringmaltratada):
-        if char.isalpha():
+        if char.isalnum():
             aux_word+=char
             if not len_frase - 1 == index: 
-                if not stringmaltratada[index+1].isalpha():
+                if not stringmaltratada[index+1].isalnum():
                     final += stringdict.get(aux_word, str.encode(aux_word))
                     aux_word = ""
             else:
                 final+= stringdict.get(aux_word, str.encode(aux_word))
                 aux_word=""
-        if not char.isalpha():
+        if not char.isalnum():
             final+= str.encode(char)
     # agora, transformando essa lista no formato pedido.
-
+    print(final)
     return final
 
 
@@ -188,9 +192,14 @@ if sys.argv[1] == '-d':
     descomprimido.write(d.decode('utf-8'))
     descomprimido.close()
     arquivo.close()
+    print("Descomprimido no arquivo {}".format(nome_de_arquivo))
     print(d.decode('utf-8'))
 
-
+if sys.argv[1] == '-h':   # debugando para o segundo envio
+    arquivo = open(sys.argv[2], 'rb')
+    r = arquivo.read()
+    print(r)
+    print("texto")
 
 
 # Em ambos os métodos ele tenta ler de um arquivo, e na hora de salvar os resultados ele tenta criar antes caso não exista.
@@ -218,4 +227,3 @@ if sys.argv[1] == '-d':
 # Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!
 # $R@i.~~ !     :   ~$$$$$B$$en:``
 # ?MXT@Wx.~    :     ~"##*$$$$M~
-
